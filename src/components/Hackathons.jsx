@@ -45,19 +45,19 @@ const Hackathons = () => {
   ]
 
   return (
-    <section id="hackathons" className="py-20 px-6">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-12">Hackathons & Achievements</h2>
+    <section id="hackathons" className="py-20 px-6 relative">
+      <div className="max-w-7xl mx-auto backdrop-blur-sm bg-white/5 p-8 rounded-3xl">
+        <h2 className="text-3xl sm:text-4xl font-bold text-cyan-400 mb-12">Hackathons & Achievements</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {hackathons.map((hackathon, index) => (
             <div
               key={index}
-              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 flex flex-col hover:scale-105 transition-transform duration-300"
+              className="backdrop-blur-sm bg-white/5 p-6 rounded-2xl flex flex-col hover:scale-105 transition-transform duration-300 border border-white/10"
             >
-              <h3 className="text-xl font-bold text-white mb-1">{hackathon.title}</h3>
-              <p className="text-gray-400 text-sm mb-4">{hackathon.subtitle}</p>
-              <ul className="text-gray-300 mb-4 space-y-2 list-none flex-1">
+              <h3 className="text-xl font-bold text-cyan-400 mb-1">{hackathon.title}</h3>
+              <p className="text-cyan-300/70 text-sm mb-4">{hackathon.subtitle}</p>
+              <ul className="text-cyan-200 mb-4 space-y-2 list-none flex-1">
                 {hackathon.achievements.map((achievement, idx) => (
                   <li key={idx}>➔ {achievement}</li>
                 ))}
@@ -66,7 +66,7 @@ const Hackathons = () => {
                 {hackathon.technologies.map((tech, idx) => (
                   <span 
                     key={idx}
-                    className="bg-white-600 text-blue-300 text-md font-semibold px-3 py-1 rounded-full text-xs"
+                    className="text-cyan-300 text-md font-semibold px-3 py-1 rounded-full text-xs backdrop-blur-sm bg-cyan-400/10"
                   >
                     {tech}
                   </span>
@@ -79,9 +79,9 @@ const Hackathons = () => {
         {/* Stats Section */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
-            <div key={index} className="text-center p-6 bg-dark rounded-xl border border-gray-800">
-              <div className="text-3xl font-bold text-primary mb-2">{stat.number}</div>
-              <div className="text-gray-400">{stat.label}</div>
+            <div key={index} className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl border border-white/10">
+              <div className="text-3xl font-bold text-cyan-400 mb-2">{stat.number}</div>
+              <div className="text-cyan-300">{stat.label}</div>
             </div>
           ))}
         </div>

@@ -21,31 +21,33 @@ const Home = () => {
     window.open(driveLink, "_blank")
   }
 
-  const handleButtonAnimation = (e) => {
-    const button = e.target
-    button.classList.remove('animate')
-    void button.offsetWidth
-    button.classList.add('animate')
-  }
-
   return (
-    <section id="home" className="pt-36 pb-24 px-6">
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-        <div>
+    <section id="home" className="min-h-screen pt-36 pb-24 px-6 relative overflow-hidden">
+      {/* Background Blur Effect */}
+      <div className="absolute inset-0 "></div>
+      
+      {/* Content Container */}
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center relative z-10">
+        {/* Left Side - Info with Glass Effect */}
+        <div className="backdrop-blur-lg bg-white/10 p-8 rounded-3xl border border-white/20">
           <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight">
             <div className="name-container">
               <div className="name">
-                <h1>{displayText}</h1>
-                <span className="reflection">{displayText}</span>
+                <h1 className="text-cyan-400">
+                  {displayText}
+                </h1>
+                <span className="reflection text-cyan-800/40">
+                  {displayText}
+                </span>
               </div>
             </div>
           </h1>
           
-          <span className="block bg-clip-text text-transparent bg-gradient-to-r from-accent to-accent2 text-lg sm:text-xl">
+          <span className="block text-cyan-300 text-lg sm:text-xl mt-4 font-mono tracking-wider">
             FRONT END DEVELOPER | FULL STACK DEVELOPER | BACKEND DEVELOPER
           </span>
 
-          <p className="mt-5 text-lg sm:text-xl font-medium leading-relaxed text-white/80 max-w-xl">
+          <p className="mt-5 text-lg sm:text-xl font-medium leading-relaxed text-cyan-200/80 max-w-xl">
             I'm a pre-final year B.Tech in Computer Science and Engineering student with expertise in full-stack web and
             mobile development. Proficient in the MERN stack, Java, Python, and Android development. Strong
             problem-solving skills with experience in building scalable applications.
@@ -53,19 +55,16 @@ const Home = () => {
 
           <button 
             onClick={downloadCV}
-            onMouseEnter={handleButtonAnimation}
-            onMouseLeave={(e) => e.target.classList.remove('animate')}
-            className="bubbly-button border border-white/10 rounded-2xl px-8 py-6 mt-8"
+            className="mt-8 px-8 py-6 bg-cyan-600 hover:bg-cyan-500 text-white rounded-2xl transition-all duration-300 hover:scale-105 font-semibold text-lg"
           >
-            Download CV
+            DOWNLOAD CV
           </button>
         </div>
 
-        <div className="nav-animation relative">
-          <div className="absolute -top-10 -left-10 w-64 h-64 rounded-full bg-accent/20 blur-3xl"></div>
-          <div className="absolute -bottom-14 -right-10 w-72 h-64 rounded-full bg-accent2/20 blur-3xl"></div>
-          <div className="relative glass bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-            <div className="aspect-[10/10] rounded-2xl bg-gradient-to-br from-[#fbc2eb] via-[#a6c1ee] to-[#6495ed] relative overflow-hidden">
+        {/* Right Side - Profile Picture with Glass Effect */}
+        <div className="relative">
+          <div className="backdrop-blur-lg bg-white/10 p-6 md:p-8 rounded-3xl border border-white/20">
+            <div className="aspect-[10/10] rounded-2xl relative overflow-hidden">
               <img 
                 src="/assets/self.png" 
                 alt="Aniket Santosh Gosavi Profile Picture"

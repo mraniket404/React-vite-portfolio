@@ -16,34 +16,41 @@ const Skills = () => {
 
   const getCategoryColor = (category) => {
     switch(category) {
-      case 'Frontend': return 'text-sky-400'
-      case 'Programming': return 'text-amber-400'
-      case 'Version Control': return 'text-orange-400'
-      default: return 'text-gray-400'
+      case 'Frontend': return 'text-cyan-400'
+      case 'Programming': return 'text-blue-400'
+      case 'Version Control': return 'text-purple-400'
+      default: return 'text-cyan-300'
     }
   }
 
   return (
-    <section id="skills" className="py-24 px-6 text-white relative overflow-hidden">
-      <h2 className="font-semibold text-center text-3xl sm:text-4xl mb-12 text-white/90">Skills</h2>
+    <section id="skills" className="py-24 px-6 relative overflow-hidden">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="font-semibold text-center text-3xl sm:text-4xl mb-12 text-cyan-400">Skills</h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 max-w-6xl mx-auto">
-        {skills.map((skill, index) => (
-          <div
-            key={index}
-            className="bg-white/5 backdrop-blur-md rounded-2xl p-6 text-center transition transform hover:-translate-y-2 hover:shadow-xl hover:shadow-blue-500/40"
-          >
-            <img 
-              src={skill.icon} 
-              alt={skill.name}
-              className="w-14 h-14 mx-auto mb-4"
-            />
-            <h3 className="text-lg font-semibold text-white">{skill.name}</h3>
-            <p className={`text-sm ${getCategoryColor(skill.category)}`}>
-              {skill.category}
-            </p>
-          </div>
-        ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+          {skills.map((skill, index) => (
+            <div
+              key={index}
+              className="text-center transition transform hover:-translate-y-2 p-6"
+            >
+              {/* Icon with blurred background */}
+              <div className="relative inline-block mb-4">
+                <div className="absolute inset-0 backdrop-blur-md bg-cyan-400/10 rounded-2xl transform scale-110"></div>
+                <img 
+                  src={skill.icon} 
+                  alt={skill.name}
+                  className="w-14 h-14 mx-auto relative z-10"
+                />
+              </div>
+              
+              <h3 className="text-lg font-semibold text-cyan-300">{skill.name}</h3>
+              <p className={`text-sm ${getCategoryColor(skill.category)}`}>
+                {skill.category}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )

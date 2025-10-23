@@ -1,4 +1,5 @@
 import React from 'react'
+import BackgroundVideo from './components/BackgroundVideo'
 import Navbar from './components/Navbar'
 import Home from './components/Home'
 import About from './components/About'
@@ -8,24 +9,20 @@ import Hackathons from './components/Hackathons'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 
-function App() {
+const App = () => {
   return (
-    <div className="min-h-screen bg-dark text-white relative bg-mesh noise">
-      {/* Background Waves */}
-      <div>
-        <div className="wave"></div>
-        <div className="wave"></div>
-        <div className="wave"></div>
+    <div className="min-h-screen text-white">
+      <BackgroundVideo />
+      <div className="relative z-10">
+        <Navbar />
+        <Home />
+        <About />
+        <Skills />
+        <Projects />
+        <Hackathons />
+        <Contact />
+        <Footer />
       </div>
-      
-      <Navbar />
-      <Home />
-      <About />
-      <Skills />
-      <Projects />
-      <Hackathons />
-      <Contact />
-      <Footer />
     </div>
   )
 }

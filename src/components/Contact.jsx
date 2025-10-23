@@ -1,33 +1,48 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from 'react'
 
-const ContactSpace3D = () => {
-  const [submissions, setSubmissions] = useState([]);
+const Contact = () => {
   const [isSending, setIsSending] = useState(false);
   const [messageStatus, setMessageStatus] = useState("");
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
-  const sceneRef = useRef(null);
-  const formRef = useRef(null);
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePosition({
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: -(e.clientY / window.innerHeight) * 2 + 1
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  const [showPopup, setShowPopup] = useState(false);
+  const [formVisible, setFormVisible] = useState(true);
+  const [rocketVisible, setRocketVisible] = useState(false);
+  const [parachuteVisible, setParachuteVisible] = useState(false);
+  const [landingVisible, setLandingVisible] = useState(false);
+  const formDataRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSending(true);
     setMessageStatus("sending");
+    
+    // Store form data before hiding the form
+    const formData = new FormData(e.target);
+    formDataRef.current = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      message: formData.get('message')
+    };
+    
+    // Step 1: Fold the form
+    setFormVisible(false);
+    
+    // Wait for fold animation to complete
+    setTimeout(() => {
+      // Step 2: Show rocket launch
+      setRocketVisible(true);
+      
+      // Send the form data
+      sendFormData();
+    }, 800);
+  };
 
+  const sendFormData = async () => {
     try {
-      const formData = new FormData(formRef.current);
+      // Create FormData from stored data
+      const formData = new FormData();
+      formData.append('name', formDataRef.current.name);
+      formData.append('email', formDataRef.current.email);
+      formData.append('message', formDataRef.current.message);
       
       const response = await fetch('https://formspree.io/f/xgvnjqol', {
         method: 'POST',
@@ -38,475 +53,387 @@ const ContactSpace3D = () => {
       });
 
       if (response.ok) {
-        const id = Date.now();
-        setSubmissions((prev) => [...prev, id]);
-        setMessageStatus("success");
-        formRef.current.reset();
-        
+        // Step 3: Rocket reaches peak and parachute deploys
         setTimeout(() => {
-          setSubmissions((prev) => prev.filter((s) => s !== id));
-          setIsSending(false);
-          setMessageStatus("");
-        }, 4000);
+          setRocketVisible(false);
+          setParachuteVisible(true);
+          
+          // Step 4: Landing sequence
+          setTimeout(() => {
+            setParachuteVisible(false);
+            setLandingVisible(true);
+            setMessageStatus("success");
+            setShowPopup(true);
+            
+            // Step 5: Reset everything
+            setTimeout(() => {
+              setLandingVisible(false);
+              setShowPopup(false);
+              setIsSending(false);
+              setMessageStatus("");
+              setFormVisible(true);
+              e.target.reset();
+            }, 3000);
+            
+          }, 2000); // Parachute descent time
+          
+        }, 2000); // Rocket ascent time
+        
       } else {
         throw new Error(`Formspree error: ${response.status}`);
       }
     } catch (error) {
       console.error('Submission error:', error);
       setMessageStatus("error");
+      setShowPopup(true);
+      setRocketVisible(false);
+      
       setTimeout(() => {
+        setShowPopup(false);
         setIsSending(false);
         setMessageStatus("");
+        setFormVisible(true);
       }, 3000);
     }
   };
 
   return (
-    <section className=" min-h-screen flex flex-col md:flex-row items-center justify-center px-6 md:px-20 relative overflow-hidden">
+    <section id="contact" className="min-h-screen flex items-center justify-center px-6 md:px-10 relative overflow-hidden py-10">
       
-      {/* Enhanced Space Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Animated Nebula Background */}
-        <div className="absolute inset-0">
-          <div className="absolute w-full h-full bg-gradient-to-br from-blue-900/5 via-purple-900/10 to-cyan-900/5 animate-nebula-flow"></div>
-          <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/3 rounded-full blur-3xl animate-float-slow"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/3 rounded-full blur-3xl animate-float-medium"></div>
+      {/* Success Popup */}
+      {showPopup && (
+        <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-6 rounded-2xl border backdrop-blur-md transition-all duration-500 ${
+          messageStatus === "success" 
+            ? "bg-green-500/20 border-green-400/30 text-green-400 scale-100" 
+            : "bg-red-500/20 border-red-400/30 text-red-400 scale-100"
+        }`}>
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl">
+              {messageStatus === "success" ? "🎯" : "❌"}
+            </span>
+            <div>
+              <span className="font-bold text-lg block">
+                {messageStatus === "success" ? "Mission Accomplished!" : "Launch Failed"}
+              </span>
+              <span className="text-sm">
+                {messageStatus === "success" ? "Message successfully delivered to destination!" : "Please try again later."}
+              </span>
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* Enhanced Stars */}
-        {[...Array(50)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute bg-white rounded-full star"
-            style={{
-              width: `${Math.random() * 2 + 1}px`,
-              height: `${Math.random() * 2 + 1}px`,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animation: `twinkle ${3 + Math.random() * 7}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 5}s`
-            }}
-          />
-        ))}
-
-        {/* Shooting Stars */}
-        <div className="absolute w-1 h-1 bg-white rounded-full animate-shooting-star-1"></div>
-        <div className="absolute w-1 h-1 bg-cyan-300 rounded-full animate-shooting-star-2"></div>
-      </div>
-
-      {/* Left side - Enhanced Space Animation Scene */}
-      <div className="hidden md:flex md:flex-1 justify-center items-center relative h-96" ref={sceneRef}>
-        
-        <div className="relative w-96 h-96">
-          {/* Quantum Communication Ring */}
-          <div className="absolute inset-0 animate-quantum-ring">
-            <div className="w-80 h-80 border-2 border-cyan-400/40 rounded-full relative quantum-ring">
-              <div className="absolute inset-0 border border-cyan-300/20 rounded-full animate-ping-slow"></div>
-              <div className="absolute inset-4 border border-blue-400/30 rounded-full"></div>
-              <div className="absolute inset-8 border border-purple-400/20 rounded-full"></div>
-              
-              {/* Energy Nodes */}
-              <div className="absolute top-0 left-1/2 w-3 h-3 bg-cyan-400 rounded-full -translate-x-1/2 -translate-y-1/2 animate-pulse-glow"></div>
-              <div className="absolute bottom-0 left-1/2 w-3 h-3 bg-cyan-400 rounded-full -translate-x-1/2 translate-y-1/2 animate-pulse-glow"></div>
-              <div className="absolute left-0 top-1/2 w-3 h-3 bg-cyan-400 rounded-full -translate-y-1/2 -translate-x-1/2 animate-pulse-glow"></div>
-              <div className="absolute right-0 top-1/2 w-3 h-3 bg-cyan-400 rounded-full -translate-y-1/2 translate-x-1/2 animate-pulse-glow"></div>
+      {/* Rocket Launch Animation */}
+      {rocketVisible && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40">
+          <div className="relative">
+            {/* Rocket */}
+            <div className="text-8xl animate-rocket-launch">
+              🚀
             </div>
-          </div>
-
-          {/* Central Holographic Display */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className={`relative w-32 h-32 bg-gradient-to-br from-gray-900/80 to-gray-800/90 rounded-2xl border border-cyan-400/30 shadow-2xl shadow-cyan-500/30 backdrop-blur-xl flex items-center justify-center hologram-container ${
-              messageStatus === "sending" ? 'animate-hologram-active' : 
-              messageStatus === "success" ? 'animate-hologram-success' : 
-              messageStatus === "error" ? 'animate-hologram-error' : 'animate-hologram-idle'
-            }`}
-                 style={{
-                   transform: `rotateX(${mousePosition.y * 15}deg) rotateY(${mousePosition.x * 15}deg) scale(${1 + (isHovered ? 0.1 : 0)})`
-                 }}>
-              
-              {/* Holographic Grid */}
-              <div className="absolute inset-2 border border-cyan-400/10 rounded-lg grid-lines"></div>
-              
-              {/* Status Icon */}
-              <div className="text-3xl relative z-10">
-                {messageStatus === "sending" ? '🛰️' : 
-                 messageStatus === "success" ? '✅' : 
-                 messageStatus === "error" ? '❌' : '🌌'}
+            
+            {/* Rocket Fire */}
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+              <div className="flex flex-col items-center space-y-1">
+                <div className="w-16 h-8 bg-gradient-to-t from-orange-500 to-yellow-400 rounded-full animate-fire-pulse"></div>
+                <div className="w-12 h-6 bg-gradient-to-t from-red-500 to-orange-400 rounded-full animate-fire-pulse" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-8 h-4 bg-gradient-to-t from-yellow-400 to-orange-300 rounded-full animate-fire-pulse" style={{animationDelay: '0.2s'}}></div>
               </div>
-
-              {/* Particle Effects */}
-              <div className="absolute inset-0 rounded-2xl overflow-hidden">
-                <div className="absolute w-2 h-2 bg-cyan-400/30 rounded-full animate-particle-1"></div>
-                <div className="absolute w-1 h-1 bg-blue-400/40 rounded-full animate-particle-2"></div>
-                <div className="absolute w-1 h-1 bg-purple-400/30 rounded-full animate-particle-3"></div>
+            </div>
+            
+            {/* Smoke Trail */}
+            <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2">
+              <div className="flex space-x-2">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-4 h-4 bg-gray-400/60 rounded-full animate-smoke-float"
+                    style={{
+                      animationDelay: `${i * 0.2}s`,
+                      animationDuration: `${2 + i * 0.5}s`
+                    }}
+                  />
+                ))}
               </div>
             </div>
           </div>
-
-          {/* Data Packets Transmission */}
-          {submissions.map((id, index) => (
-            <div key={id} className={`absolute inset-0 animate-data-packet-${index % 3}`}>
-              <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg transform rotate-45 shadow-2xl shadow-cyan-500/60 backdrop-blur-sm border border-cyan-300/40 flex items-center justify-center relative">
-                <div className="text-white text-xs font-bold transform -rotate-45">📦</div>
-                <div className="absolute -inset-1 bg-cyan-400/20 rounded-lg blur-sm animate-pulse"></div>
-              </div>
-            </div>
-          ))}
-
-          {/* Orbiting Satellites */}
-          <div className="absolute inset-0">
-            <div className="absolute w-4 h-4 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full shadow-lg shadow-cyan-500/20 animate-orbit-satellite-1">
-              <div className="w-1 h-2 bg-cyan-400 absolute -top-1 left-1/2 transform -translate-x-1/2"></div>
-            </div>
-            <div className="absolute w-3 h-3 bg-gradient-to-br from-gray-500 to-gray-700 rounded-full shadow-lg shadow-blue-500/20 animate-orbit-satellite-2">
-              <div className="w-1 h-1 bg-blue-400 absolute -top-1 left-1/2 transform -translate-x-1/2"></div>
-            </div>
+          
+          <div className="absolute -bottom-24 left-1/2 transform -translate-x-1/2 text-cyan-400 text-sm font-mono animate-pulse">
+            LAUNCHING INTO SPACE...
           </div>
+        </div>
+      )}
 
-          {/* Status Display */}
-          {messageStatus && (
-            <div className={`absolute bottom-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl font-mono text-sm border backdrop-blur-lg status-display ${
-              messageStatus === "success" ? "status-success" :
-              messageStatus === "error" ? "status-error" :
-              "status-sending"
-            }`}>
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full animate-pulse ${
-                  messageStatus === "success" ? "bg-green-400" :
-                  messageStatus === "error" ? "bg-red-400" :
-                  "bg-cyan-400"
-                }`}></div>
-                <span>
-                  {messageStatus === "sending" ? "QUANTUM ENCODING DATA..." :
-                   messageStatus === "success" ? "TRANSMISSION COMPLETE" :
-                   "SIGNAL LOST - RETRYING"}
-                </span>
-              </div>
+      {/* Parachute Descent Animation */}
+      {parachuteVisible && (
+        <div className="fixed top-0 left-1/2 transform -translate-x-1/2 z-40">
+          <div className="relative animate-parachute-descent">
+            {/* Parachute */}
+            <div className="text-6xl animate-parachute-sway">
+              🪂
             </div>
+            
+            {/* Package/Rocket Body */}
+            <div className="absolute top-16 left-1/2 transform -translate-x-1/2 text-4xl">
+              📦
+            </div>
+            
+            {/* Connection Lines */}
+            <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-white/60"></div>
+            <div className="absolute top-12 left-1/2 transform -translate-x-1/2 -translate-y-1 w-16 h-0.5 bg-white/40 rotate-45"></div>
+            <div className="absolute top-12 left-1/2 transform -translate-x-1/2 -translate-y-1 w-16 h-0.5 bg-white/40 -rotate-45"></div>
+          </div>
+          
+          <div className="absolute top-40 left-1/2 transform -translate-x-1/2 text-cyan-400 text-sm font-mono animate-pulse">
+            DESCENDING TO TARGET...
+          </div>
+        </div>
+      )}
+
+      {/* Landing Animation */}
+      {landingVisible && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40">
+          <div className="relative animate-landing-bounce">
+            {/* Landed Package */}
+            <div className="text-6xl">
+              📬
+            </div>
+            
+            {/* Success Effects */}
+            <div className="absolute -top-2 -left-2 w-16 h-16 border-2 border-green-400 rounded-full animate-ping"></div>
+            <div className="absolute -top-4 -left-4 w-20 h-20 border border-green-300 rounded-full animate-pulse"></div>
+            
+            {/* Celebration Particles */}
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-2 h-2 bg-yellow-400 rounded-full animate-celebration-float"
+                style={{
+                  left: `${Math.random() * 100 - 50}px`,
+                  top: `${Math.random() * 50 - 100}px`,
+                  animationDelay: `${i * 0.2}s`
+                }}
+              />
+            ))}
+          </div>
+          
+          <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-green-400 text-sm font-mono font-bold animate-pulse">
+            MESSAGE DELIVERED!
+          </div>
+        </div>
+      )}
+
+      {/* Contact Form */}
+      <div className="w-full max-w-lg relative z-10">
+        <div className={`backdrop-blur-md bg-white/10 rounded-3xl border border-cyan-400/30 transition-all duration-700 ${
+          formVisible 
+            ? 'p-8 scale-100 opacity-100' 
+            : 'p-0 scale-75 opacity-0 -translate-y-10'
+        } ${isSending ? 'pointer-events-none' : ''}`}>
+          
+          {formVisible && (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Header */}
+              <div className="text-center space-y-3">
+                <h2 className="text-4xl font-light tracking-tight text-cyan-400">
+                  CONTACT
+                </h2>
+                <p className="text-cyan-300/70 text-sm tracking-wider">
+                  LAUNCH YOUR MESSAGE
+                </p>
+              </div>
+
+              {/* Form Fields */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-cyan-300/90">Your Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Enter your full name"
+                    required
+                    className="w-full p-3 rounded-lg bg-white/10 text-white border border-cyan-400/30 focus:border-cyan-400 outline-none transition-all duration-300 placeholder-cyan-300/50 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-cyan-300/90">Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    required
+                    className="w-full p-3 rounded-lg bg-white/10 text-white border border-cyan-400/30 focus:border-cyan-400 outline-none transition-all duration-300 placeholder-cyan-300/50 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-cyan-300/90">Message</label>
+                  <textarea
+                    name="message"
+                    placeholder="Enter your message..."
+                    required
+                    rows="4"
+                    className="w-full p-3 rounded-lg bg-white/10 text-white border border-cyan-400/30 focus:border-cyan-400 outline-none transition-all duration-300 placeholder-cyan-300/50 resize-none text-sm"
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSending}
+                className="w-full py-4 rounded-xl font-semibold text-lg bg-cyan-600 hover:bg-cyan-500 text-white rounded-2xl text-white transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 group"
+              >
+                <span className="text-xl group-hover:scale-110 transition-transform duration-300"></span>
+                <span>LAUNCH MESSAGE</span>
+              </button>
+            </form>
           )}
-
-          {/* Cosmic Text */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-cyan-300/80 text-sm font-mono tracking-widest animate-text-glow">
-            INTERSTELLAR COMMUNICATION
-          </div>
-        </div>
-      </div>
-
-      {/* Right side - Professional Space Form */}
-      <div className="flex-1 max-w-md w-full relative z-10">
-        <div 
-          className="bg-gray-900/30 backdrop-blur-2xl p-10 rounded-3xl shadow-2xl border border-cyan-500/20 space-y-8 professional-form"
-          style={{
-            transform: `perspective(1200px) rotateX(${mousePosition.y * 4}deg) rotateY(${mousePosition.x * 4}deg) translateZ(${isHovered ? '20px' : '0px'})`
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
-            {/* Header */}
-            <div className="text-center space-y-4">
-              <div className="w-16 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto rounded-full"></div>
-              <h2 className="text-5xl font-light tracking-tight bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent professional-title">
-                CONTACT
-              </h2>
-              <p className="text-cyan-300/70 font-mono text-sm tracking-wider">
-                INITIATE QUANTUM COMMUNICATION
+          
+          {/* Footer */}
+          {formVisible && (
+            <div className="text-center pt-4 border-t border-cyan-400/20 mt-6">
+              <p className="text-cyan-300/50 text-xs">
+                Complete mission sequence: Launch → Parachute → Delivery
               </p>
             </div>
-
-            {/* Form Fields */}
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-cyan-300/90 font-mono tracking-wide uppercase">Your Identity</label>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="ENTER FULL NAME"
-                  required
-                  className="w-full p-4 rounded-xl bg-gray-800/40 text-white border border-cyan-500/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition-all duration-500 backdrop-blur-sm placeholder-gray-400 font-mono text-sm professional-input"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-cyan-300/90 font-mono tracking-wide uppercase">Communication Channel</label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="EMAIL ADDRESS"
-                  required
-                  className="w-full p-4 rounded-xl bg-gray-800/40 text-white border border-blue-500/30 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all duration-500 backdrop-blur-sm placeholder-gray-400 font-mono text-sm professional-input"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-cyan-300/90 font-mono tracking-wide uppercase">Message Data</label>
-                <textarea
-                  name="message"
-                  placeholder="ENTER YOUR MESSAGE..."
-                  required
-                  rows="6"
-                  className="w-full p-4 rounded-xl bg-gray-800/40 text-white border border-purple-500/30 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 outline-none transition-all duration-500 backdrop-blur-sm placeholder-gray-400 font-mono text-sm resize-none professional-textarea"
-                ></textarea>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSending}
-              className={`w-full py-5 rounded-2xl font-semibold text-lg tracking-widest transition-all duration-700 professional-button ${
-                isSending 
-                  ? 'bg-gray-700 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-cyan-600/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-500 hover:shadow-2xl hover:shadow-cyan-500/30 active:scale-95'
-              } relative overflow-hidden group border border-cyan-500/30`}
-            >
-              <span className="relative z-10 flex items-center justify-center space-x-3">
-                {isSending ? (
-                  <>
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>ENCRYPTING...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-xl">⚡</span>
-                    <span>INITIATE TRANSMISSION</span>
-                  </>
-                )}
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left opacity-20"></div>
-            </button>
-          </form>
-
-          {/* Footer */}
-          <div className="text-center pt-6 border-t border-cyan-500/10">
-            <p className="text-cyan-300/50 font-mono text-xs tracking-wider">
-              SECURE QUANTUM ENCRYPTION • LIGHTSPEED DELIVERY
-            </p>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Enhanced CSS Styles */}
+      {/* CSS Animations */}
       <style>
         {`
-          .professional-form {
-            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-            box-shadow: 
-              0 25px 50px -12px rgba(0, 0, 0, 0.5),
-              0 0 0 1px rgba(6, 182, 212, 0.1),
-              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          @keyframes rocket-launch {
+            0% {
+              transform: translate(-50%, -50%) scale(1);
+              opacity: 1;
+            }
+            30% {
+              transform: translate(-50%, -150%) scale(1.1);
+              opacity: 1;
+            }
+            60% {
+              transform: translate(-50%, -300%) scale(1);
+              opacity: 0.9;
+            }
+            100% {
+              transform: translate(-50%, -500%) scale(0.8);
+              opacity: 0;
+            }
           }
-
           
-
-          .professional-title {
-            background-size: 200% 200%;
-            animation: professional-gradient 6s ease infinite;
-          }
-
-          .professional-input, .professional-textarea {
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          }
-
-          .professional-input:focus, .professional-textarea:focus {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.15);
-          }
-
-          .professional-button {
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            box-shadow: 0 10px 30px -5px rgba(6, 182, 212, 0.3);
-          }
-
-          .professional-button:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 40px -5px rgba(6, 182, 212, 0.4);
-          }
-
-          .hologram-container {
-            box-shadow: 
-              0 0 60px rgba(6, 182, 212, 0.3),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
-          }
-
-          .grid-lines {
-            background-image: 
-              linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
-            background-size: 20px 20px;
-          }
-
-          .quantum-ring {
-            background: conic-gradient(from 0deg, transparent, rgba(6, 182, 212, 0.3), transparent);
-          }
-
-          .status-display {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-          }
-
-          .status-sending {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.1));
-            border: 1px solid rgba(6, 182, 212, 0.3);
-          }
-
-          .status-success {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(21, 128, 61, 0.1));
-            border: 1px solid rgba(34, 197, 94, 0.3);
-          }
-
-          .status-error {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.1));
-            border: 1px solid rgba(239, 68, 68, 0.3);
-          }
-
-          .star {
-            box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
-          }
-
-          @keyframes professional-gradient {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-          }
-
-          @keyframes nebula-flow {
-            0%, 100% { transform: translateX(0px) translateY(0px); }
-            33% { transform: translateX(30px) translateY(-20px); }
-            66% { transform: translateX(-20px) translateY(30px); }
-          }
-
-          @keyframes quantum-ring {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.05); }
-            100% { transform: rotate(360deg) scale(1); }
-          }
-
-          @keyframes hologram-idle {
-            0%, 100% { transform: translateY(0px) rotateX(0deg); }
-            50% { transform: translateY(-10px) rotateX(5deg); }
-          }
-
-          @keyframes hologram-active {
-            0%, 100% { 
-              box-shadow: 0 0 60px rgba(6, 182, 212, 0.4),
-                         inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          @keyframes parachute-descent {
+            0% {
+              transform: translate(-50%, -100px) scale(0.8);
+              opacity: 0;
             }
-            50% { 
-              box-shadow: 0 0 80px rgba(6, 182, 212, 0.6),
-                         inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            20% {
+              transform: translate(-50%, 100px) scale(1);
+              opacity: 1;
+            }
+            100% {
+              transform: translate(-50%, 80vh) scale(1);
+              opacity: 1;
             }
           }
-
-          @keyframes hologram-success {
-            0%, 100% { 
-              box-shadow: 0 0 60px rgba(34, 197, 94, 0.4);
+          
+          @keyframes parachute-sway {
+            0%, 100% {
+              transform: translateX(0px) rotate(0deg);
             }
-            50% { 
-              box-shadow: 0 0 80px rgba(34, 197, 94, 0.6);
+            25% {
+              transform: translateX(-5px) rotate(-2deg);
             }
-          }
-
-          @keyframes hologram-error {
-            0%, 100% { 
-              box-shadow: 0 0 60px rgba(239, 68, 68, 0.4);
-            }
-            50% { 
-              box-shadow: 0 0 80px rgba(239, 68, 68, 0.6);
+            75% {
+              transform: translateX(5px) rotate(2deg);
             }
           }
-
-          @keyframes data-packet-0 {
-            0% { transform: rotate(0deg) translateX(160px) rotate(0deg) scale(0.8); opacity: 0; }
-            20% { transform: rotate(72deg) translateX(160px) rotate(-72deg) scale(1); opacity: 1; }
-            80% { transform: rotate(288deg) translateX(160px) rotate(-288deg) scale(1); opacity: 0.8; }
-            100% { transform: rotate(360deg) translateX(160px) rotate(-360deg) scale(0.8); opacity: 0; }
+          
+          @keyframes landing-bounce {
+            0% {
+              transform: translateY(-20px) scale(1.2);
+            }
+            60% {
+              transform: translateY(0px) scale(1);
+            }
+            80% {
+              transform: translateY(-10px) scale(1.05);
+            }
+            100% {
+              transform: translateY(0px) scale(1);
+            }
           }
-
-          @keyframes data-packet-1 {
-            0% { transform: rotate(120deg) translateX(160px) rotate(0deg) scale(0.8); opacity: 0; }
-            20% { transform: rotate(192deg) translateX(160px) rotate(-72deg) scale(1); opacity: 1; }
-            80% { transform: rotate(408deg) translateX(160px) rotate(-288deg) scale(1); opacity: 0.8; }
-            100% { transform: rotate(480deg) translateX(160px) rotate(-360deg) scale(0.8); opacity: 0; }
+          
+          @keyframes celebration-float {
+            0% {
+              transform: translateY(0) scale(0);
+              opacity: 0;
+            }
+            50% {
+              transform: translateY(-20px) scale(1);
+              opacity: 1;
+            }
+            100% {
+              transform: translateY(-40px) scale(0);
+              opacity: 0;
+            }
           }
-
-          @keyframes data-packet-2 {
-            0% { transform: rotate(240deg) translateX(160px) rotate(0deg) scale(0.8); opacity: 0; }
-            20% { transform: rotate(312deg) translateX(160px) rotate(-72deg) scale(1); opacity: 1; }
-            80% { transform: rotate(528deg) translateX(160px) rotate(-288deg) scale(1); opacity: 0.8; }
-            100% { transform: rotate(600deg) translateX(160px) rotate(-360deg) scale(0.8); opacity: 0; }
+          
+          @keyframes fire-pulse {
+            0%, 100% {
+              transform: scaleY(1);
+              opacity: 0.8;
+            }
+            50% {
+              transform: scaleY(1.2);
+              opacity: 1;
+            }
           }
-
-          @keyframes orbit-satellite-1 {
-            0% { transform: rotate(0deg) translateX(200px) rotate(0deg); }
-            100% { transform: rotate(360deg) translateX(200px) rotate(-360deg); }
+          
+          @keyframes smoke-float {
+            0% {
+              transform: translateY(0) scale(1);
+              opacity: 0.8;
+            }
+            100% {
+              transform: translateY(-40px) scale(1.5);
+              opacity: 0;
+            }
           }
-
-          @keyframes orbit-satellite-2 {
-            0% { transform: rotate(180deg) translateX(150px) rotate(0deg); }
-            100% { transform: rotate(540deg) translateX(150px) rotate(-360deg); }
+          
+          .animate-rocket-launch {
+            animation: rocket-launch 2s ease-out forwards;
           }
-
-          @keyframes particle-1 {
-            0%, 100% { transform: translate(0px, 0px); opacity: 0; }
-            50% { transform: translate(10px, -15px); opacity: 1; }
+          
+          .animate-parachute-descent {
+            animation: parachute-descent 2s ease-in forwards;
           }
-
-          @keyframes particle-2 {
-            0%, 100% { transform: translate(0px, 0px); opacity: 0; }
-            50% { transform: translate(-8px, 12px); opacity: 1; }
+          
+          .animate-parachute-sway {
+            animation: parachute-sway 3s ease-in-out infinite;
           }
-
-          @keyframes particle-3 {
-            0%, 100% { transform: translate(0px, 0px); opacity: 0; }
-            50% { transform: translate(12px, 8px); opacity: 1; }
+          
+          .animate-landing-bounce {
+            animation: landing-bounce 1s ease-out forwards;
           }
-
-          @keyframes shooting-star-1 {
-            0% { transform: translateX(-100px) translateY(-100px) rotate(45deg); opacity: 0; }
-            10% { transform: translateX(100px) translateY(100px) rotate(45deg); opacity: 1; }
-            100% { transform: translateX(500px) translateY(500px) rotate(45deg); opacity: 0; }
+          
+          .animate-celebration-float {
+            animation: celebration-float 1.5s ease-out forwards;
           }
-
-          @keyframes shooting-star-2 {
-            0% { transform: translateX(-200px) translateY(0px) rotate(30deg); opacity: 0; }
-            5% { transform: translateX(0px) translateY(100px) rotate(30deg); opacity: 1; }
-            100% { transform: translateX(600px) translateY(300px) rotate(30deg); opacity: 0; }
+          
+          .animate-fire-pulse {
+            animation: fire-pulse 0.3s ease-in-out infinite;
           }
-
-          @keyframes text-glow {
-            0%, 100% { text-shadow: 0 0 20px rgba(6, 182, 212, 0.5); }
-            50% { text-shadow: 0 0 30px rgba(6, 182, 212, 0.8), 0 0 40px rgba(6, 182, 212, 0.6); }
+          
+          .animate-smoke-float {
+            animation: smoke-float 2s ease-out forwards;
           }
-
-          @keyframes ping-slow {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
-          }
-
-          .animate-nebula-flow { animation: nebula-flow 20s ease-in-out infinite; }
-          .animate-quantum-ring { animation: quantum-ring 8s linear infinite; }
-          .animate-hologram-idle { animation: hologram-idle 4s ease-in-out infinite; }
-          .animate-hologram-active { animation: hologram-active 2s ease-in-out infinite; }
-          .animate-hologram-success { animation: hologram-success 2s ease-in-out infinite; }
-          .animate-hologram-error { animation: hologram-error 2s ease-in-out infinite; }
-          .animate-data-packet-0 { animation: data-packet-0 3s ease-in-out forwards; }
-          .animate-data-packet-1 { animation: data-packet-1 3s ease-in-out forwards; }
-          .animate-data-packet-2 { animation: data-packet-2 3s ease-in-out forwards; }
-          .animate-orbit-satellite-1 { animation: orbit-satellite-1 12s linear infinite; }
-          .animate-orbit-satellite-2 { animation: orbit-satellite-2 15s linear infinite; }
-          .animate-particle-1 { animation: particle-1 3s ease-in-out infinite; }
-          .animate-particle-2 { animation: particle-2 4s ease-in-out infinite; }
-          .animate-particle-3 { animation: particle-3 5s ease-in-out infinite; }
-          .animate-shooting-star-1 { animation: shooting-star-1 8s linear infinite; }
-          .animate-shooting-star-2 { animation: shooting-star-2 12s linear infinite; animation-delay: 4s; }
-          .animate-text-glow { animation: text-glow 3s ease-in-out infinite; }
-          .animate-ping-slow { animation: ping-slow 3s ease-out infinite; }
-          .animate-float-slow { animation: float-slow 15s ease-in-out infinite; }
-          .animate-float-medium { animation: float-medium 12s ease-in-out infinite; }
-          .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
         `}
       </style>
     </section>
   );
 };
 
-export default ContactSpace3D;
+export default Contact
