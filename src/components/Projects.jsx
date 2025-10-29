@@ -6,6 +6,24 @@ const Projects = () => {
   const projects = [
     {
       id: 1,
+      title: "Women Entrepreneurs",
+      description: "Empowering women-led businesses.",
+      fullDescription: "A platform that promotes and supports women entrepreneurs by showcasing their handmade and locally crafted products, encouraging users to explore and shop sustainably from women across India.",
+      image: "/assets/Women.png",
+      github: "https://github.com/mraniket404/Women-Entrepreneurs",
+      live: "https://women-entrepreneurs-frontend.onrender.com/"
+    },    
+    {
+      id: 2,
+      title: "Study Groups",
+      description: "Collaborative learning platform.",
+      fullDescription: "A web platform that allows students and mentors to create or join study groups, collaborate, and share learning resources in real-time.",
+      image: "/assets/study.png",
+      github: "https://github.com/mraniket404/Study-Group",
+      live: "https://study-group-3-wnhq.onrender.com/"
+    },    
+    {
+      id: 3,
       title: "EcoCart",
       description: "Sustainable shopping assistant.",
       fullDescription: "Sustainable shopping assistant for eco-friendly products.",
@@ -14,7 +32,7 @@ const Projects = () => {
       live: "#"
     },
     {
-      id: 2,
+      id: 4,
       title: "HeartWise",
       description: "Heart health monitoring system.",
       fullDescription: "Heart health monitoring system with reminders and alerts.",
@@ -23,7 +41,7 @@ const Projects = () => {
       live: "https://healthcare-sgihunters.netlify.app/"
     },
     {
-      id: 3,
+      id: 5,
       title: "Chessboard",
       description: "Real time game",
       fullDescription: "Real time game in two players and 3rd player are spectator.",
@@ -32,7 +50,7 @@ const Projects = () => {
       live: "#"
     },
     {
-      id: 4,
+      id: 6,
       title: "Time Table",
       description: "Time Table auto generate",
       fullDescription: "Time Table auto generate system",
@@ -41,7 +59,7 @@ const Projects = () => {
       live: "#"
     },
     {
-      id: 5,
+      id: 7,
       title: "AI-Powered Chatbot",
       description: "OpenAI GPT API → Powers chatbot conversations.",
       fullDescription: "Most small businesses don't have a proper online presence or customer support. We provide a MERN-based platform that adds an AI chatbot to existing websites and builds new websites with chatbot integration.",

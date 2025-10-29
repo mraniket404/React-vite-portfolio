@@ -68,7 +68,7 @@ const Home = () => {
               <img 
                 src="/assets/self.png" 
                 alt="Aniket Santosh Gosavi Profile Picture"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>

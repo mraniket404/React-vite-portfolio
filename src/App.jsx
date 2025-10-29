@@ -8,6 +8,7 @@ import Projects from './components/Projects'
 import Hackathons from './components/Hackathons'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
+import Achievements from './components/Achievements'
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
         <Skills />
         <Projects />
         <Hackathons />
+        <Achievements />
         <Contact />
         <Footer />
       </div>
